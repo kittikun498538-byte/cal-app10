@@ -7,30 +7,27 @@ def show_summary_dialog(final_billed, selected_items):
     st.write("### รายการอุปกรณ์และบริการ:")
     if selected_items:
         for item in selected_items:
-            # แสดงเฉพาะชื่อและจำนวนตามที่ตกลงกันไว้
             st.write(f"✅ {item['name']} จำนวน {item['qty']} รายการ")
     else:
         st.write("ยังไม่ได้เลือกรายการอุปกรณ์")
     
     st.divider()
-    # แสดงราคาสุทธิที่ปัดเศษแล้ว
-    st.info(f"## ราคาที่เสนอผู้ใช้ไฟ: {final_billed:,.0f} บาท")
+    # ปรับชื่อหัวข้อในหน้า Pop-up ให้ตรงกัน
+    st.info(f"## ราคาเสนอค่าติดตั้งและบริการ(ไม่รวมภาษีมูลค่าเพิ่ม): {final_billed:,.0f} บาท")
     st.write("*(ราคานี้รวมค่าแรง ค่าปลดสับ และอุปกรณ์เรียบร้อยแล้ว)*")
 
 def main():
     st.set_page_config(page_title="ระบบคำนวณค่าบริการ", layout="wide")
     
-    # เปลี่ยนชื่อหัวข้อหลักตามที่คุณต้องการ
+    # หัวข้อหลักที่แก้ไขในรอบที่แล้ว
     st.title("ประมาณการติดตั้งอุปกรณ์ป้องกันและบำรุงรักษาหม้อแปลง")
     st.divider()
 
     # --- ส่วนที่ 1: ค่าแรงพนักงาน ---
     st.header("ค่าแรงพนักงาน")
     staff_data = [
-        {"level": "พชง.3", "rate": 87.77},
-        {"level": "พชง.4", "rate": 103.48},
-        {"level": "พชง.5", "rate": 125.30},
-        {"level": "พชง.6", "rate": 164.19},
+        {"level": "พชง.3", "rate": 87.77}, {"level": "พชง.4", "rate": 103.48},
+        {"level": "พชง.5", "rate": 125.30}, {"level": "พชง.6", "rate": 164.19},
     ]
     total_wage = 0
     cols_h = st.columns([2, 2, 2, 2, 2])
@@ -49,10 +46,9 @@ def main():
 
     st.divider()
 
-    # --- ส่วนที่ 2: ค่าปลดสับ (ล็อคราคา) ---
+    # --- ส่วนที่ 2: ค่าปลดสับ (ล็อคราคา 570) ---
     st.header("ค่าปลดสับ")
     cs1, cs2, cs3 = st.columns([4, 4, 2])
-    # ล็อคราคาต่อครั้งที่ 570
     cs1.number_input("ราคาต่อครั้ง", value=570.0, disabled=True) 
     s_qty = cs2.number_input("จำนวนครั้ง", value=0)
     total_switch = 570.0 * s_qty
@@ -60,7 +56,7 @@ def main():
     
     st.divider()
 
-    # --- ส่วนที่ 3: รายการอุปกรณ์และบำรุงรักษา (ล็อคราคาหน่วย) ---
+    # --- ส่วนที่ 3: รายการอุปกรณ์และบำรุงรักษา ---
     st.header("รายการอุปกรณ์และบริการ")
     items_list = [
         {"name": "Bird Spikes", "price": 325.0},
@@ -81,7 +77,6 @@ def main():
     for i, item in enumerate(items_list):
         ic1, ic2, ic3, ic4 = st.columns([4, 2, 2, 2])
         ic1.text(item["name"]) 
-        # ล็อคราคาหน่วยไม่ให้แก้ไข
         ic2.number_input("ราคา", value=item["price"], key=f"p_{i}", disabled=True, label_visibility="collapsed")
         q = ic3.number_input("จำนวน", value=0, key=f"qty_{i}", label_visibility="collapsed")
         
@@ -96,16 +91,17 @@ def main():
 
     # --- ส่วนที่ 4: สรุปงบประมาณ ---
     raw_total = total_wage + total_switch + total_items
-    # ปัดเศษขึ้นหลักร้อยอัตโนมัติ
+    # สูตรปัดเศษหลักร้อย
     final_billed = math.ceil(raw_total / 100) * 100 if raw_total > 0 else 0
     
     st.subheader("📊 สรุปงบประมาณ")
     st.write(f"ราคารวมคำนวณจริง: {raw_total:,.2f} บาท")
-    st.info(f"### ราคาที่เสนอผู้ใช้ไฟ: {final_billed:,.0f} บาท")
+    # เปลี่ยนชื่อตามที่สั่ง (วงกลมสีเขียว)
+    st.info(f"### ราคาเสนอค่าติดตั้งและบริการ(ไม่รวมภาษีมูลค่าเพิ่ม): {final_billed:,.0f} บาท")
 
-    # --- ปุ่มกดสำหรับเปิดหน้าต่างใหม่ (Pop-up) ---
+    # --- ปุ่มกดสำหรับเปิดหน้าต่างใหม่ (เอาคำว่า แคปหน้าจอ ออก) ---
     st.write("")
-    if st.button("📱 แสดงหน้าสรุปสำหรับแจ้งลูกค้า (แคปหน้าจอ)", type="primary", use_container_width=True):
+    if st.button("📱 แสดงหน้าสรุปสำหรับแจ้งลูกค้า", type="primary", use_container_width=True):
         show_summary_dialog(final_billed, selected_items)
 
 if __name__ == "__main__":
